@@ -34,3 +34,22 @@ func (g Graph) BFS(start string) (nodes []string) {
 	}
 	return nodes
 }
+
+//DFS Depth first search
+func (g Graph) DFS(start string) (nodes []string) {
+	visited := make(map[string]struct{})
+	
+	return g.dfsRecurse(start, visited, []string{})
+}
+
+func (g Graph) dfsRecurse(start string, visited map[string]struct{}, current []string) (result []string) {
+	visited[start] = struct{}{}
+	result = append([]string{start}, result...)
+	for _, next := range g.theMap[start] {
+		_, ok := visited[next]
+		if !ok {
+			result = append(result, g.dfsRecurse(next, visited, result)...)
+		}
+	}
+	return result
+}
