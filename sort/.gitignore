@@ -1,0 +1,9 @@
+thirdParty/googletest-release-1.8.0/*
+.vscode/*
+CMakeFiles/*
+CMakeCache.txt
+CTestTestfile.cmake
+Makefile
+UnitTests
+cmake_install.cmake
+libgtest_180_lib.a
