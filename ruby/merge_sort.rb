@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-def merge_sort(items, start, ending)
+def merge_sort(items, start, ending, less = lambda {|l, r| l < r})
     if !items.respond_to?("[]")
         return items
     end
@@ -14,18 +14,18 @@ def merge_sort(items, start, ending)
         return items
     end
     middle = start + ( (ending - start) / 2)
-    merge_sort(items, start, middle)
-    merge_sort(items, middle, ending)
-    merge(items, start, middle, ending)
+    merge_sort(items, start, middle, less)
+    merge_sort(items, middle, ending, less)
+    merge(items, start, middle, ending, less)
     return items
 end
 
-def merge(items, start, middle, ending)
+def merge(items, start, middle, ending, less)
     tmp = []
     starti = start
     middlei = middle
     while starti < middle && middlei < ending 
-        if items[starti] < items[middlei]
+        if less.call(items[starti], items[middlei])
             tmp.push(items[starti])
             starti = starti + 1
         else
@@ -52,5 +52,5 @@ if __FILE__ == $0
     puts merge_sort(a, 0, a.size)
     a = ["s", "a", "t", "b", "z"]
     puts merge_sort(a, 0, a.size)
-
+    puts merge_sort(a, 0, a.size, lambda {|l, r| l > r})
 end
