@@ -1,5 +1,6 @@
 ;; https://clojure.org/guides/learn/functions
 (println (+ 1 2))
+;; Section 2, functions
 ;; 1
 (defn greet [] (println "hello"))
 (greet)
@@ -55,7 +56,7 @@
 (defn sincos2 [x] 
     (+ (Math/pow (Math/sin x) 2) (Math/pow (Math/cos x) 2))
 )
-( let [x (rand-int Integer/MAX_VALUE)]
+( let [x (rand-int (* 2 Math/PI))]
        (assert (= (sincos2 x) 1.0))
 )
 ;; 11
@@ -70,7 +71,7 @@
 (http-get "https://google.com")
 (defn fast-http-get [url] (slurp url))
 (fast-http-get "https://google.com")
-;; 12
+;; 12 currying
 (defn one-less-arg [f x]
   (fn [& args] (apply f x args))
 )
@@ -79,5 +80,10 @@
     (assert (= (greeting "robert" "weber")) (f "weber"))
     (assert (= (greeting "robert")) (f))
 )
-;; 13
-
+(source partial)
+;; 13 composition
+(defn two-functions [f g]
+    #(f (g %1))
+)
+(assert (= ((two-functions greeting (one-less-arg greeting "robert")) "weber") "Hello, robert, weber!!"))
+;; Section 3 Sequential Collections
