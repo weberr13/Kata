@@ -50,3 +50,34 @@
 )
 (triplicate2 #(println (greeting %1 %2)) "foo" "bar")
 ;; 10
+(println (Math/cos Math/PI))
+(assert (= (Math/cos Math/PI) -1.0))
+(defn sincos2 [x] 
+    (+ (Math/pow (Math/sin x) 2) (Math/pow (Math/cos x) 2))
+)
+( let [x (rand-int Integer/MAX_VALUE)]
+       (assert (= (sincos2 x) 1.0))
+)
+;; 11
+(import java.net.URL)
+(defn http-get [url]
+  (let [
+      u (URL. url)
+  ]
+    (println (slurp (.openStream u)))
+  )
+)
+(http-get "https://google.com")
+(defn fast-http-get [url] (slurp url))
+(fast-http-get "https://google.com")
+;; 12
+(defn one-less-arg [f x]
+  (fn [& args] (apply f x args))
+)
+(let [
+    f (one-less-arg greeting "robert")] 
+    (assert (= (greeting "robert" "weber")) (f "weber"))
+    (assert (= (greeting "robert")) (f))
+)
+;; 13
+
