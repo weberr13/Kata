@@ -103,3 +103,34 @@
 (def things (pop things))
 (assert (= (peek things) "a"))
 ;; Section 4, hashed collections
+;; sets
+(def s1 #{ "a", "b", "c"})
+(assert (contains? s1 "a"))
+(assert (not (contains? s1 "d")))
+(def s2 (conj s1 "d"))
+(assert (contains? s2 "d"))
+(def s3 (disj s2 "d" "a"))
+(assert (not (contains? s3 "a")))
+(assert (not (contains? s3 "d")))
+(def s4 (conj (sorted-set) "d" "a" "c" "b"))
+(assert (= s4 #{"a", "b", "c", "d"}))
+(def s5 (conj s4 "0")) ;; sorted attribute retained
+(assert (= s5 #{"0", "a", "b", "c", "d"}))
+(def v1 ["a" "a" "b"])
+(def s6 (into #{"a", "c"} v1))
+(assert (= s6 #{"a", "c", "b"}))
+;; maps
+(def m1 {"a" 1 "b" 2})
+(def m2 {"a" 1, "b" 2})
+(assert (= m1 m2))
+(def m3 (assoc m1 "c" 3))
+(assert (= m3 {"a" 1 "b" 2 "c" 3}))
+(def m4 (assoc m1 "a" 3))
+(assert (= m4 {"a" 3 "b" 2}))
+(def m5 (dissoc m3 "c"))
+(assert (= m5 m1))
+(assert (= (get m1 "a") 1))
+(assert (= (m1 "a") 1))
+(assert (= (m1 "d") nil))
+
+
