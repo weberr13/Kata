@@ -56,9 +56,9 @@
 (defn sincos2 [x] 
     (+ (Math/pow (Math/sin x) 2) (Math/pow (Math/cos x) 2))
 )
-( let [x (rand-int (* 2 Math/PI))]
-       (assert (= (sincos2 x) 1.0))
-)
+; ( let [x (rand-int (* 2 Math/PI))]
+;        (assert (= (sincos2 x) 1.0))
+; )
 ;; 11
 (import java.net.URL)
 (defn http-get [url]
@@ -132,5 +132,64 @@
 (assert (= (get m1 "a") 1))
 (assert (= (m1 "a") 1))
 (assert (= (m1 "d") nil))
-
-
+(assert (= (m1 "not-found" :default) :default))
+(assert (= (get m1 "also-not-found" :default) :default))
+(assert (contains? m1 "a"))
+(assert (= (find m1 "a") ["a" 1]))
+(assert (= (keys m1) '("a" "b")))
+(assert (= (vals m1) '(1 2)))
+;; build with zipmap
+(def zip (zipmap s1 (repeat 0)))
+(assert (= zip {"a" 0 "b" 0 "c" 0}))
+;; with map and into
+(def zip2 (into {} (map (fn [si] [si 0]) s1)))
+(assert (= zip zip2))
+;; with reduce
+(def zip3 (reduce (fn [m si]
+          (assoc m si 0))
+        {} ; initial value
+        s1))
+(assert (= zip zip3))
+;; merge with default conflict resolution
+(def m6a {"a" 1 "b" 2 "c" 3})
+(def m6b {"c" 4 "d" 5})
+(assert (= (merge m6a m6b) {"a" 1 "b" 2 "c" 4 "d" 5}))
+(assert (= (merge-with + m6a m6b) {"a" 1 "b" 2 "c" (+ 4 3) "d" 5}))
+;; ordered maps
+(assert (= (sorted-map
+         "Bravo" 204
+         "Alfa" 35
+         "Sigma" 99
+         "Charlie" 100) 
+{"Alfa" 35, "Bravo" 204, "Charlie" 100, "Sigma" 99}))
+;; Field accessablity
+(def person
+  {:first-name "Kelly"
+   :last-name "Keen"
+   :age 32
+   :occupation "Programmer"})
+(assert (= (person :age) (:age person)))
+(assert (= (:notfound person "default") "default"))
+;; Nested
+(def company
+  {:name "WidgetCo"
+   :address {:street "123 Main St"
+             :city "Springfield"
+             :state "IL"}})
+(assert (= (get-in company [:address :city]) "Springfield"))
+(def updated_company (assoc-in company [:address :street] "303 Broadway"))
+(assert (= (get-in updated_company [:address :street]) "303 Broadway"))
+;; records
+;; Define a record structure
+(defrecord Person [first-name last-name age occupation])
+;; Positional constructor - generated
+(def kelly (->Person "Kelly" "Keen" 32 "Programmer"))
+;; Map constructor - generated
+(def kelly2 (map->Person
+             {:first-name "Kelly"
+              :last-name "Keen"
+              :age 32
+              :occupation "Programmer"}))
+(assert (= kelly kelly2))
+(assert (= (:age kelly) 32))
+;; Section 5 flow control
