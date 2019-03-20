@@ -7,6 +7,8 @@ import (
 )
 
 type EatsThings struct {
+   feeders int
+   start chan interface{}
    input chan interface{}
    done chan interface{}
    end chan interface{}
@@ -15,6 +17,7 @@ type EatsThings struct {
 func MakeEater() (*EatsThings) {
    return &EatsThings{input: make(chan interface{}, 1),
                       end: make(chan interface{}, 1),
+                      start: make(chan interface{}, 1),
                       done: make(chan interface {},1 ),
                       gobbler: make([]interface{}, 0, 10)}
 }
@@ -22,25 +25,44 @@ func (eater *EatsThings) eat() {
    loop:
    for {
       select {
+      case <- eater.start:
+         eater.feeders++
       case thing := <- eater.input:
          eater.gobbler = append(eater.gobbler, thing)
       case <- eater.end:
-         inner:
-         for {
-            select {
-            case thing := <- eater.input:
-               eater.gobbler = append(eater.gobbler, thing)
-            default:
-               break inner
+         eater.feeders--
+         if eater.feeders == 0 {
+            inner:
+            for {
+               select {
+               case thing := <- eater.input:
+                  eater.gobbler = append(eater.gobbler, thing)
+               default:
+                  break inner
+               }
             }
+            break loop
          }
-         break loop
       }
    }
    eater.done <- struct{}{}
 }
-
-
+type Feeder struct {
+   tray chan<- interface{}
+   end chan<- interface{}
+}
+func MakeFeeder(e EatsThings) (*Feeder) {
+   f := &Feeder{tray:e.input,
+                end: e.end}
+   e.start <- struct{}{}
+   return f
+}
+func (f Feeder) Feed(thing interface{}) {
+   f.tray <- thing
+}
+func (f Feeder) End() {
+   f.end <- struct{}{}
+}
 func TestAmIWarm(t *testing.T) {
    empty := make(map[string]int)
    if len(empty) != 0 {
@@ -63,10 +85,18 @@ func TestAmIWarm(t *testing.T) {
    }
    eater := MakeEater()
    go eater.eat()
-   for i:= 0 ; i < 10 ; i++ {
-      eater.input <- i
+   fun := func(eater *EatsThings) {
+      feeder := MakeFeeder(*eater)
+      go func() {
+         for i:= 0 ; i < 10 ; i++ {
+            feeder.Feed(i)
+         }
+         feeder.End()
+      }()
    }
-   eater.end <- struct{}{}
+   fun(eater)
+   fun(eater)
+   fun(eater)
    loop:
    for {
       select {
@@ -74,7 +104,7 @@ func TestAmIWarm(t *testing.T) {
          break loop
       }
    }
-   if len(eater.gobbler) != 10 {
+   if len(eater.gobbler) != 30 {
       for _, v := range eater.gobbler {
          fmt.Println("got: ", v)
       }
