@@ -1,3 +1,5 @@
+(ns clojure-kata.hashed)
+
 ;; Section 4, hashed collections
 ;; sets
 (def s1 #{ "a", "b", "c"})

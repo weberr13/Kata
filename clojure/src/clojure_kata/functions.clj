@@ -1,3 +1,5 @@
+(ns clojure-kata.functions)
+
 ;; https://clojure.org/guides/learn/functions
 (println (+ 1 2))
 ;; Section 2, functions

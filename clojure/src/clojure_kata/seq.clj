@@ -1,3 +1,5 @@
+(ns clojure-kata.seq)
+
 ;; Section 3 Sequential Collections
 ;; vectors
 (assert (= [ 1 2 3 ] (vector 1 2 3)))
