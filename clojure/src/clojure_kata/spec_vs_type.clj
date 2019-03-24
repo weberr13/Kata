@@ -8,7 +8,7 @@
             [clojure.spec.gen.alpha :as gen]
             [clojure.spec.test.alpha :as stest]))
 
-(def bday (f/parse (f/formatters :date-time-no-ms) "1979-03-13T03:13:00Z"))
+(def bday (f/parse (f/formatters :date-time-no-ms) "1979-03-15T03:13:00Z"))
 
 (defn bday?
   [d]
@@ -16,8 +16,8 @@
     (and (= (t/month d) (t/month bday))
          (= (t/day d) (t/day bday)))))
 
-(assert (bday? "2019-03-13T00:00:00Z"))
-(assert (not (bday? "2019-03-15T00:00:00Z")))
+(assert (bday? "2019-03-15T00:00:00Z"))
+(assert (not (bday? "2019-03-13T00:00:00Z")))
 
 (comment
   (assert (bday? 1)))
@@ -50,8 +50,8 @@
 
 (assert (throws? (bday? [:a]) "not a string"))
 (assert (throws? (bday? {:a "b"}) "not a string"))
-(assert (bday? "2019-03-13T00:00:00Z"))
-(assert (not (bday? "2019-03-14T00:00:00Z")))
+(assert (bday? "2019-03-15T00:00:00Z"))
+(assert (not (bday? "2019-03-13T00:00:00Z")))
 (comment
   (assert (throws? (bday? "foo") "not a string")))
 
@@ -72,7 +72,7 @@
 (assert (throws? (bday? [:a]) "not a day i can parse"))
 (assert (throws? (bday? {:a "b"}) "not a day i can parse"))
 (assert (throws? (bday? "foo") "not a day i can parse"))
-(assert (bday? "2019-03-13T00:00:00Z"))
+(assert (bday? "2019-03-15T00:00:00Z"))
 (assert (not (bday? "2019-03-14T00:00:00Z")))
 
 (gen/sample (spec/gen ::day))
@@ -107,7 +107,7 @@
                                    :d
                                    (string/split #"-")
                                    next))
-                  "03-13")))
+                  "03-15")))
 
 (stest/check `bday? {:gen {::parseable-day (fn [] generate-day)}})
 
