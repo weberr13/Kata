@@ -1,10 +1,13 @@
 (ns clojure-kata.spec-vs-type
   (:require [clojure.spec.alpha :as spec]
+            [clojure.string :as string]
             [clojure.tools.logging :as log]
             [clj-time.core :as t]
-            [clj-time.format :as f]))
+            [clj-time.format :as f]
+            [clj-time.coerce :as c]
+            [clojure.spec.gen.alpha :as gen]
+            [clojure.spec.test.alpha :as stest]))
 
-#_(f/show-formatters)
 (def bday (f/parse (f/formatters :date-time-no-ms) "1979-03-13T03:13:00Z"))
 
 (defn bday?
@@ -31,7 +34,7 @@
    `(try
       ~f
       false
-      (catch Exception _
+      (catch Exception _#
         true)))
   ([f msg]
    `(try
@@ -44,4 +47,63 @@
 
 (assert (throws? (bday? [:a]) "not a string"))
 (assert (throws? (bday? {:a "b"}) "not a string"))
-(assert (throws? (bday? "foo") "not a string"))
+#_(assert (throws? (bday? "foo") "not a string"))
+(assert (bday? "2019-03-13T00:00:00Z"))
+(assert (not (bday? "2019-03-14T00:00:00Z")))
+
+(spec/def ::parseable-day
+  #(not
+     (throws?
+       (f/parse (f/formatters :date-time-no-ms) %))))
+
+(defn bday?
+  [d]
+  (when-not (spec/valid? ::parseable-day d)
+    (throw (ex-info "not a day i can parse" {:d d})))
+  (let [d (f/parse (f/formatters :date-time-no-ms) d)]
+    (and (= (t/month d) (t/month bday))
+         (= (t/day d) (t/day bday)))))
+
+(assert (throws? (bday? [:a]) "not a day i can parse"))
+(assert (throws? (bday? {:a "b"}) "not a day i can parse"))
+(assert (throws? (bday? "foo") "not a day i can parse"))
+(assert (bday? "2019-03-13T00:00:00Z"))
+(assert (not (bday? "2019-03-14T00:00:00Z")))
+
+(gen/sample (spec/gen ::day))
+#_(gen/sample (spec/gen ::parseable-day))
+
+(spec/def ::instant-str (spec/inst-in #inst "1900" #inst "2100"))
+(def generate-day (gen/fmap
+                    #(f/unparse (f/formatters :date-time-no-ms)
+                                (c/from-long (.toEpochMilli
+                                               (.toInstant ^java.util.Date %))))
+                    (spec/gen ::instant-str)))
+
+(drop 50 (gen/sample generate-day 55))
+
+(string/starts-with? (string/join "-" (-> "1969-12-31T23:59:59Z"
+                                          (string/split #"-")
+                                          next))
+                     "03-13")
+
+(defn debug
+  [x]
+  (log/info x)
+  x)
+#_(spec/fdef bday?
+             :args (spec/cat :d ::parseable-day)
+             :ret boolean?
+             :fn #(= (:ret %) false))
+(spec/fdef bday?
+        :args (spec/cat :d ::parseable-day)
+        :ret boolean?
+        :fn #(= (:ret %) (string/starts-with? (string/join "-"
+                                                           (-> %
+                                                               :args
+                                                               :d
+                                                               (string/split #"-")
+                                                               next))
+                                              "03-13")))
+
+(stest/check `bday? {:gen {::parseable-day (fn [] generate-day)}})
