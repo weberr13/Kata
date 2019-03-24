@@ -19,6 +19,9 @@
 (assert (bday? "2019-03-13T00:00:00Z"))
 (assert (not (bday? "2019-03-15T00:00:00Z")))
 
+(comment
+  (assert (bday? 1)))
+
 (spec/def ::day string?)
 
 (defn bday?
@@ -47,9 +50,11 @@
 
 (assert (throws? (bday? [:a]) "not a string"))
 (assert (throws? (bday? {:a "b"}) "not a string"))
-#_(assert (throws? (bday? "foo") "not a string"))
 (assert (bday? "2019-03-13T00:00:00Z"))
 (assert (not (bday? "2019-03-14T00:00:00Z")))
+(comment
+  (assert (throws? (bday? "foo") "not a string")))
+
 
 (spec/def ::parseable-day
   #(not
@@ -71,7 +76,8 @@
 (assert (not (bday? "2019-03-14T00:00:00Z")))
 
 (gen/sample (spec/gen ::day))
-#_(gen/sample (spec/gen ::parseable-day))
+(comment
+  (gen/sample (spec/gen ::parseable-day)))
 
 (spec/def ::instant-str (spec/inst-in #inst "1900" #inst "2100"))
 (def generate-day (gen/fmap
@@ -82,28 +88,27 @@
 
 (drop 50 (gen/sample generate-day 55))
 
-(string/starts-with? (string/join "-" (-> "1969-12-31T23:59:59Z"
-                                          (string/split #"-")
-                                          next))
-                     "03-13")
-
-(defn debug
-  [x]
-  (log/info x)
-  x)
-#_(spec/fdef bday?
+;; to illustrate when the generator tries my bday
+(comment
+  (spec/fdef bday?
              :args (spec/cat :d ::parseable-day)
              :ret boolean?
              :fn #(= (:ret %) false))
+  (first (stest/check `bday? {:gen {::parseable-day (fn [] generate-day)}})))
+
 (spec/fdef bday?
         :args (spec/cat :d ::parseable-day)
         :ret boolean?
-        :fn #(= (:ret %) (string/starts-with? (string/join "-"
-                                                           (-> %
-                                                               :args
-                                                               :d
-                                                               (string/split #"-")
-                                                               next))
-                                              "03-13")))
+        :fn #(= (:ret %)
+                (string/starts-with?
+                  (string/join "-"
+                               (-> %
+                                   :args
+                                   :d
+                                   (string/split #"-")
+                                   next))
+                  "03-13")))
 
 (stest/check `bday? {:gen {::parseable-day (fn [] generate-day)}})
+
+
